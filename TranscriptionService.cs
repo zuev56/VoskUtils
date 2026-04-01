@@ -21,7 +21,7 @@ public sealed class TranscriptionService
         // TODO: Если характеристики wav не соответствуют настройкам, надо сначала выполнить преобразование!
 
         var ws = new ClientWebSocket();
-        await ws.ConnectAsync(new Uri(_settings.VoskWebSocketUrl), cancellationToken);
+        await ws.ConnectAsync(new Uri(_settings.WebSocketUrl), cancellationToken);
 
         var data = new byte[8000];
         var results = new List<JsonElement>();
@@ -53,15 +53,15 @@ public sealed class TranscriptionService
 
         var jsonStr = Encoding.UTF8.GetString(result, 0, webSocketReceiveResult.Count);
 
-        return JsonSerializer.Deserialize<JsonElement>(jsonStr);
+        return JsonSerializer.Deserialize(jsonStr, AppJsonSerializerContext.Default.JsonElement);
     }
 
     public async Task<List<JsonElement>> TranscribeMp3(Stream mp3Stream, CancellationToken cancellationToken)
     {
         try
         {
-            await using Mp3FileReader mp3FileReader = new Mp3FileReader(mp3Stream);
-            await using WaveStream pcm = WaveFormatConversionStream.CreatePcmStream(mp3FileReader);
+            await using var mp3FileReader = new Mp3FileReader(mp3Stream);
+            await using var pcmWaveStream = WaveFormatConversionStream.CreatePcmStream(mp3FileReader);
 
             var targetFormat = new WaveFormat(_settings.WavSamplingRateHz, _settings.WavBitRate, channels: 1);
 
@@ -86,7 +86,7 @@ public sealed class TranscriptionService
         }
         catch (Exception e)
         {
-            throw new InvalidOperationException("Ошибка конвертации", e);
+            throw new InvalidOperationException("MP3 Conversion error", e);
         }
     }
 }

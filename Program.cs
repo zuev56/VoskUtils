@@ -1,19 +1,35 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using Vosk.WebApi;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.Services.AddOptions<Settings>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+});
+
+// TODO: В случае с AOT не работает биндинг конфигурации, хотя всё делал по инструкции (.NET 10.0.5)
+// var voskSection = builder.Configuration.GetSection(Settings.SectionName);
+// builder.Services.Configure<Settings>(voskSection);
+var settings = new Settings
+{
+    WebSocketUrl = builder.Configuration.GetValue<string>("VoskSettings:WebSocketUrl")!,
+    ResultChunkSize = builder.Configuration.GetValue<int>("VoskSettings:ResultChunkSize"),
+    WavSamplingRateHz = builder.Configuration.GetValue<int>("VoskSettings:WavSamplingRateHz"),
+    WavBitRate = builder.Configuration.GetValue<int>("VoskSettings:WavBitRate")
+};
+builder.Services.AddSingleton<IOptions<Settings>>(new OptionsWrapper<Settings>(settings));
 
 builder.Services.AddSingleton<TranscriptionService>();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -86,3 +102,12 @@ voskApi.MapPost("/transcribe", async (HttpContext httpContext, [FromServices] Tr
 app.Run();
 
 internal enum AudioFormat { Unsupported, Mp3, Wav }
+
+[JsonSourceGenerationOptions(
+    WriteIndented = false,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    GenerationMode = JsonSourceGenerationMode.Default)]
+[JsonSerializable(typeof(IFormFile))]
+[JsonSerializable(typeof(Settings))]
+[JsonSerializable(typeof(JsonElement))]
+public partial class AppJsonSerializerContext : JsonSerializerContext;
