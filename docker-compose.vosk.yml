@@ -33,6 +33,8 @@ services:
       - "${AUDIO_CONVERTER_PORT:-7074}:8080"
     volumes:
       - "/opt/configs:/opt/configs/:ro"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
     networks:
       - vosk-network
 
@@ -51,6 +53,8 @@ services:
       - "${WEB_API_PORT:-7075}:8080"
     volumes:
       - "/opt/configs:/opt/configs/:ro"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
     networks:
       - vosk-network
     depends_on:

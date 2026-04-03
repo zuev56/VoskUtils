@@ -15,9 +15,12 @@ RUN dotnet build "./Vosk.AudioConverter.WebApi.csproj" -c $BUILD_CONFIGURATION -
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Vosk.AudioConverter.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Vosk.AudioConverter.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=true --self-contained true -p:PublishSingleFile=true
 
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Vosk.AudioConverter.WebApi.dll"]
+
+# command-line args (global configuration path)
+CMD ["/opt/configs/"]
