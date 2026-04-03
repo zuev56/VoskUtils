@@ -14,7 +14,7 @@ RUN dotnet build "./Vosk.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Vosk.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish -r linux-arm64 /p:PublishAot=true
+RUN dotnet publish "./Vosk.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish -r linux-amd64 /p:PublishAot=true
 
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled AS final
 WORKDIR /app
