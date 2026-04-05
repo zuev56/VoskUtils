@@ -47,7 +47,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       FFmpegApiUrl: http://${HOST_IP:-localhost}:${FFMPEG_PORT:-7074}
-      VoskWebSocketUrl: http://${HOST_IP:-localhost}:${VOSK_PORT:-7073}
+      VoskWebSocketUrl: ws://${HOST_IP:-localhost}:${VOSK_PORT:-7073}
       ResultChunkSize: 8192
       WavSamplingRateHz: 8000
       WavBitRate: 16
